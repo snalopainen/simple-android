@@ -19,7 +19,7 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.simple.clinic.analytics.Analytics
-import org.simple.clinic.analytics.MockReporter
+import org.simple.clinic.analytics.MockAnalyticsReporter
 import org.simple.clinic.bp.BloodPressureRepository
 import org.simple.clinic.drugs.PrescriptionRepository
 import org.simple.clinic.medicalhistory.MedicalHistory
@@ -53,7 +53,8 @@ class PatientSummaryScreenControllerTest {
   private val clock = Clock.fixed(Instant.now(), UTC)
 
   private val uiEvents = PublishSubject.create<UiEvent>()
-  private val reporter = MockReporter()
+  private val reporter = MockAnalyticsReporter()
+
   private lateinit var controller: PatientSummaryScreenController
 
   @Before
@@ -248,7 +249,7 @@ class PatientSummaryScreenControllerTest {
   fun `when the screen is opened, the viewed patient analytics event must be sent`(fromCaller: PatientSummaryCaller) {
     uiEvents.onNext(PatientSummaryScreenCreated(patientUuid, fromCaller))
 
-    val expectedEvent = MockReporter.Event("ViewedPatient", mapOf(
+    val expectedEvent = MockAnalyticsReporter.Event("ViewedPatient", mapOf(
         "patientId" to patientUuid.toString(),
         "from" to fromCaller.name
     ))
