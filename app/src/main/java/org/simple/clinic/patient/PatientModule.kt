@@ -47,7 +47,7 @@ open class PatientModule {
   @Provides
   open fun phoneNumberMaskerConfig(): Single<PhoneNumberMaskerConfig> =
       Single.just(PhoneNumberMaskerConfig(
-          maskingEnabled = false,
+          maskingEnabled = true,
           phoneNumber = BuildConfig.MASKED_PHONE_NUMBER
       ))
 
