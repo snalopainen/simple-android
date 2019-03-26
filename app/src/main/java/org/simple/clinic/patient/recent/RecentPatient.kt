@@ -53,41 +53,41 @@ data class RecentPatient(
         ) latestUpdatedAt
         FROM Patient P
           LEFT JOIN (
-            SELECT MAX(createdAt) latestCreatedAt, T.*
-              FROM BloodPressureMeasurement T
+            SELECT MAX(createdAt) latestCreatedAt, *
+              FROM BloodPressureMeasurement
               WHERE deletedAt IS NULL
               GROUP BY patientUuid
           ) LAST_BP ON P.uuid = LAST_BP.patientUuid
           LEFT JOIN (
-            SELECT MAX(createdAt) latestCreatedAt, T.*
-              FROM BloodPressureMeasurement T
+            SELECT MAX(createdAt) latestCreatedAt, *
+              FROM BloodPressureMeasurement
               WHERE facilityUuid = :facilityUuid
               AND deletedAt IS NULL
               GROUP BY patientUuid
           ) BP_FOR_ORDERING ON P.uuid = BP_FOR_ORDERING.patientUuid
           LEFT JOIN (
-            SELECT MAX(updatedAt) latestUpdatedAt, T.*
-              FROM PrescribedDrug T
+            SELECT MAX(updatedAt) latestUpdatedAt, *
+              FROM PrescribedDrug
               WHERE facilityUuid = :facilityUuid
               AND deletedAt IS NULL
               GROUP BY patientUuid
           ) PD ON P.uuid = PD.patientUuid
           LEFT JOIN (
-            SELECT MAX(updatedAt) latestUpdatedAt, T.*
-              FROM Appointment T
+            SELECT MAX(updatedAt) latestUpdatedAt, *
+              FROM Appointment
               WHERE facilityUuid = :facilityUuid
               AND deletedAt IS NULL
               GROUP BY patientUuid
           ) AP ON P.uuid = AP.patientUuid
           LEFT JOIN (
-            SELECT MAX(updatedAt) latestUpdatedAt, T.*
-              FROM Communication T
+            SELECT MAX(updatedAt) latestUpdatedAt, *
+              FROM Communication
               WHERE deletedAt IS NULL
               GROUP BY appointmentUuid
           ) COMM ON AP.uuid = COMM.appointmentUuid
           LEFT JOIN (
-            SELECT MAX(updatedAt) latestUpdatedAt, T.*
-              FROM MedicalHistory T
+            SELECT MAX(updatedAt) latestUpdatedAt, *
+              FROM MedicalHistory
               WHERE deletedAt IS NULL
               GROUP BY patientUuid
           ) MH ON P.uuid = MH.patientUuid
