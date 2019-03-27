@@ -19,12 +19,14 @@ import org.simple.clinic.activity.TheActivity
 import org.simple.clinic.facility.Facility
 import org.simple.clinic.newentry.PatientEntryScreenKey
 import org.simple.clinic.patient.PatientSearchResult
+import org.simple.clinic.patient.PatientSearchResults
 import org.simple.clinic.router.screen.ScreenRouter
 import org.simple.clinic.summary.OpenIntention
 import org.simple.clinic.util.UtcClock
 import org.simple.clinic.summary.PatientSummaryScreenKey
 import org.simple.clinic.widgets.UiEvent
 import org.simple.clinic.widgets.hideKeyboard
+import org.simple.clinic.widgets.visibleOrGone
 import org.threeten.bp.Instant
 import java.util.UUID
 import javax.inject.Inject
@@ -48,13 +50,6 @@ class PatientSearchResultsScreen(context: Context, attrs: AttributeSet) : Relati
   private val emptyStateView by bindView<View>(R.id.patientsearchresults_empty_state)
   private val newPatientRationaleTextView by bindView<TextView>(R.id.patientsearchresults_new_patient_rationale)
   private val newPatientButton by bindView<Button>(R.id.patientsearchresults_new_patient)
-
-  private val queryAgeTextView by lazy {
-    // The age View is inflated as a menu so that it forces the toolbar
-    // title to get ellipsized instead of overlapping age if it's really long.
-    toolbar.inflateMenu(R.menu.patient_search_results)
-    toolbar.findViewById<TextView>(R.id.patientsearchresults_query_age)
-  }
 
   override fun onFinishInflate() {
     super.onFinishInflate()
@@ -96,7 +91,7 @@ class PatientSearchResultsScreen(context: Context, attrs: AttributeSet) : Relati
           .clicks(newPatientButton)
           .map { CreateNewPatientClicked() }
 
-  fun updateSearchResults(results: List<PatientSearchResult>, currentFacility: Facility) {
+  fun updateSearchResults(results: PatientSearchResults, currentFacility: Facility) {
     adapter.updateAndNotifyChanges(results, currentFacility)
   }
 
@@ -109,7 +104,7 @@ class PatientSearchResultsScreen(context: Context, attrs: AttributeSet) : Relati
   }
 
   fun setEmptyStateVisible(visible: Boolean) {
-    emptyStateView.visibility = if (visible) View.VISIBLE else View.GONE
+    emptyStateView.visibleOrGone(visible)
 
     newPatientRationaleTextView.setText(when {
       visible -> R.string.patientsearchresults_register_patient_rationale_for_empty_state
@@ -121,7 +116,4 @@ class PatientSearchResultsScreen(context: Context, attrs: AttributeSet) : Relati
     })
   }
 
-  fun showComputedAge(age: String) {
-    queryAgeTextView.text = age
-  }
 }

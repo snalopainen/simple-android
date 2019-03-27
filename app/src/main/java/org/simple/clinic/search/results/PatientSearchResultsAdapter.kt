@@ -118,7 +118,7 @@ class PatientSearchResultsAdapter @Inject constructor(
         phoneNumberTextView.visibility = View.GONE
       } else {
         phoneNumberTextView.visibility = View.VISIBLE
-        phoneNumberTextView.text = phoneObfuscator.obfuscate(phoneNumber!!)
+        phoneNumberTextView.text = phoneObfuscator.obfuscate(phoneNumber)
       }
     }
 

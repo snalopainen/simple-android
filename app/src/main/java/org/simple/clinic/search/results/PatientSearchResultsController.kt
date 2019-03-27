@@ -14,12 +14,7 @@ import org.simple.clinic.patient.OngoingNewPatientEntry.PersonalDetails
 import org.simple.clinic.patient.PatientRepository
 import org.simple.clinic.user.UserSession
 import org.simple.clinic.widgets.UiEvent
-import org.threeten.bp.Clock
-import org.threeten.bp.LocalDate
-import org.threeten.bp.Period
-import org.threeten.bp.format.DateTimeFormatter
 import javax.inject.Inject
-import javax.inject.Named
 
 typealias Ui = PatientSearchResultsScreen
 typealias UiChange = (Ui) -> Unit
@@ -59,7 +54,7 @@ class PatientSearchResultsController @Inject constructor(
         .map { (results, currentFacility) ->
           { ui: Ui ->
             ui.updateSearchResults(results, currentFacility)
-            ui.setEmptyStateVisible(results.isEmpty())
+            ui.setEmptyStateVisible(results.patientsInCurrentFacility.isEmpty() && results.patientsInOtherFacilities.isEmpty())
           }
         }
   }
