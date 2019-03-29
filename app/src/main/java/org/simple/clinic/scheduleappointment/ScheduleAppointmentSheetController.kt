@@ -2,20 +2,27 @@ package org.simple.clinic.scheduleappointment
 
 import io.reactivex.Observable
 import io.reactivex.ObservableTransformer
+import io.reactivex.Single
+import io.reactivex.rxkotlin.Observables
 import io.reactivex.rxkotlin.ofType
 import io.reactivex.rxkotlin.withLatestFrom
 import org.simple.clinic.ReportAnalyticsEvents
+import org.simple.clinic.overdue.AppointmentConfig
 import org.simple.clinic.overdue.AppointmentRepository
+import org.simple.clinic.patient.PatientRepository
+import org.simple.clinic.util.UtcClock
 import org.simple.clinic.widgets.UiEvent
 import org.threeten.bp.LocalDate
-import org.threeten.bp.ZoneOffset.UTC
 import javax.inject.Inject
 
 typealias Ui = ScheduleAppointmentSheet
 typealias UiChange = (Ui) -> Unit
 
 class ScheduleAppointmentSheetController @Inject constructor(
-    private val repository: AppointmentRepository
+    private val appointmentRepository: AppointmentRepository,
+    private val patientRepository: PatientRepository,
+    private val configProvider: Single<AppointmentConfig>,
+    private val utcClock: UtcClock
 ) : ObservableTransformer<UiEvent, UiChange> {
 
   override fun apply(upstream: Observable<UiEvent>): Observable<UiChange> {
@@ -88,13 +95,44 @@ class ScheduleAppointmentSheetController @Inject constructor(
   }
 
   private fun schedulingSkips(events: Observable<UiEvent>): Observable<UiChange> {
-    return events.ofType<SchedulingSkipped>()
+    val patientUuidStream = events
+        .ofType<ScheduleAppointmentSheetCreated>()
+        .map { it.patientUuid }
+
+    val combinedStreams = Observables.combineLatest(
+        events.ofType<SchedulingSkipped>(),
+        patientUuidStream,
+        configProvider.toObservable()
+    )
+    val defaulterFeatureEnabledStream = combinedStreams
+        .filter { (_, _, config) -> config.isApiV3Enabled }
+        .switchMap { (_, patientUuid, config) ->
+          patientRepository
+              .isPatientDefaulter(patientUuid)
+              .flatMapSingle { isPatientDefaulter ->
+                when {
+                  isPatientDefaulter -> appointmentRepository
+                      .schedule(
+                          patientUuid = patientUuid,
+                          appointmentDate = LocalDate.now(utcClock).plus(config.appointmentDuePeriodForDefaulters),
+                          isDefaulter = true)
+                      .map { { ui: Ui -> ui.closeSheet() } }
+
+                  else -> Single.just({ ui: Ui -> ui.closeSheet() })
+                }
+              }
+        }
+
+    val defaulterFeatureDisabledStream = combinedStreams
+        .filter { (_, _, config) -> config.isApiV3Enabled.not() }
         .map { { ui: Ui -> ui.closeSheet() } }
+
+    return defaulterFeatureEnabledStream.mergeWith(defaulterFeatureDisabledStream)
   }
 
   private fun scheduleCreates(events: Observable<UiEvent>): Observable<UiChange> {
     val toLocalDate = { appointment: ScheduleAppointment ->
-      LocalDate.now(UTC).plus(appointment.timeAmount.toLong(), appointment.chronoUnit)
+      LocalDate.now(utcClock).plus(appointment.timeAmount.toLong(), appointment.chronoUnit)
     }
 
     val patientUuidStream = events.ofType<ScheduleAppointmentSheetCreated>()
@@ -104,7 +142,7 @@ class ScheduleAppointmentSheetController @Inject constructor(
         .map { toLocalDate(it.selectedDateState) }
         .withLatestFrom(patientUuidStream)
         .flatMapSingle { (date, uuid) ->
-          repository
+          appointmentRepository
               .schedule(patientUuid = uuid, appointmentDate = date)
               .map { { ui: Ui -> ui.closeSheet(date) } }
         }
