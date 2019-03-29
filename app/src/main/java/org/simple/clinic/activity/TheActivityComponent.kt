@@ -8,6 +8,7 @@ import dagger.Module
 import dagger.Provides
 import dagger.Subcomponent
 import io.reactivex.Observable
+import org.simple.clinic.addidtopatient.searchforpatient.AddIdToPatientSearchScreen
 import org.simple.clinic.bp.entry.BloodPressureEntrySheet
 import org.simple.clinic.bp.entry.ConfirmRemoveBloodPressureDialog
 import org.simple.clinic.drugs.selection.PrescribedDrugScreen
@@ -107,6 +108,7 @@ interface TheActivityComponent {
   fun inject(patientsScreenKey: PatientsScreenKey)
   fun inject(target: SyncIndicatorView)
   fun inject(target: AddPhoneNumberDialog)
+  fun inject(target: AddIdToPatientSearchScreen)
 
   @Subcomponent.Builder
   interface Builder {
