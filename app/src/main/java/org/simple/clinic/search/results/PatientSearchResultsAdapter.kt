@@ -29,11 +29,11 @@ class PatientSearchResultsAdapter @Inject constructor(
 
   val itemClicks: PublishSubject<UiEvent> = PublishSubject.create<UiEvent>()
 
-  private var patients: List<PatientSearchResult> = listOf()
+  private var items: List<PatientSearchResultsItemType> = emptyList()
   private lateinit var currentFacility: Facility
 
-  fun updateAndNotifyChanges(patients: List<PatientSearchResult>, currentFacility: Facility) {
-    this.patients = patients
+  fun updateAndNotifyChanges(items: List<PatientSearchResultsItemType>, currentFacility: Facility) {
+    this.items = items
     this.currentFacility = currentFacility
     notifyDataSetChanged()
   }
@@ -46,12 +46,18 @@ class PatientSearchResultsAdapter @Inject constructor(
   }
 
   override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-    holder.searchResult = patients[position]
-    holder.render(phoneObfuscator, currentFacility, dateOfBirthFormatter, utcClock)
+    when (val item = items[position]) {
+      is PatientSearchResultsItemType.Patient -> {
+        holder.searchResult = item.patientSearchResult
+        holder.render(phoneObfuscator, currentFacility, dateOfBirthFormatter, utcClock)
+      }
+      is PatientSearchResultsItemType.Header -> {
+      }
+    }
   }
 
   override fun getItemCount(): Int {
-    return patients.size
+    return items.size
   }
 
   class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {

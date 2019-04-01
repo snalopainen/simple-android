@@ -53,7 +53,12 @@ class PatientSearchResultsController @Inject constructor(
         }
         .map { (results, currentFacility) ->
           { ui: Ui ->
-            ui.updateSearchResults(results, currentFacility)
+            val items = listOf(PatientSearchResultsItemType.Header(0, emptyList())) +
+                results.patientsInCurrentFacility.map { PatientSearchResultsItemType.Patient(it, currentFacility) } +
+                listOf(PatientSearchResultsItemType.Header(0, emptyList())) +
+                results.patientsInOtherFacilities.map { PatientSearchResultsItemType.Patient(it, currentFacility) }
+
+            ui.updateSearchResults(items)
             ui.setEmptyStateVisible(results.patientsInCurrentFacility.isEmpty() && results.patientsInOtherFacilities.isEmpty())
           }
         }
