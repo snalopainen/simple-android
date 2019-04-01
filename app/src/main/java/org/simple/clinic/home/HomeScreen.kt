@@ -35,6 +35,10 @@ class HomeScreen(context: Context, attrs: AttributeSet) : RelativeLayout(context
   @Inject
   lateinit var screenRouter: ScreenRouter
 
+  private val showHelpMenuItem by lazy(LazyThreadSafetyMode.NONE) {
+    toolBar.menu.findItem(R.id.home_actionhelp)
+  }
+
   @SuppressLint("CheckResult")
   override fun onFinishInflate() {
     super.onFinishInflate()
@@ -88,5 +92,21 @@ class HomeScreen(context: Context, attrs: AttributeSet) : RelativeLayout(context
 
   fun openFacilitySelection() {
     screenRouter.push(FacilityChangeScreenKey())
+  }
+
+  fun showHelpButton() {
+    showHelpMenuItem
+        .apply {
+          isEnabled = true
+          isVisible = true
+        }
+  }
+
+  fun hideHelpButton() {
+    showHelpMenuItem
+        .apply {
+          isEnabled = false
+          isVisible = false
+        }
   }
 }
